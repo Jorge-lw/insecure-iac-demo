@@ -1,21 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: insecure-deployment
+  name: demo-app
+  namespace: demo-insecure
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: insecure
+      app: demo
   template:
     metadata:
       labels:
-        app: insecure
+        app: demo
     spec:
       containers:
-        - name: app
-          image: alpine:3.14
-          command: ["sh", "-c", "sleep 3600"]
+        - name: demo
+          image: your-dockerhub-user/insecure-app:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: demo-config   # insecure: secrets in ConfigMap
           securityContext:
-            privileged: true   # insecure: privileged container
+            privileged: true                # insecure
+            allowPrivilegeEscalation: true  # insecure
+          volumeMounts:
+            - name: host-storage
+              mountPath: /data
+      volumes:
+        - name: host-storage
+          hostPath:
+            path: /var/lib/demo-data   # hostPath -> breakout risk
+            type: DirectoryOrCreate
 

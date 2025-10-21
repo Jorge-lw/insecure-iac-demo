@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: insecure-config
+  name: demo-config
+  namespace: demo-insecure
 data:
-  # Plaintext secret in ConfigMap (insecure)
-  DB_PASSWORD: "P@ssw0rd_insecure"
+  DB_PASSWORD: "SuperSecretInConfigMap"
+  API_KEY: "hardcoded-api-key"
+
