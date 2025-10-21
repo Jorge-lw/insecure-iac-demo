@@ -23,42 +23,30 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      # Step 1. Checkout code
+      # Step 1. Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2. Prepare environment variables for Docker
+      # Step 2. Create environment variables file for Docker
       - name: Create environment variables file
         run: |
           echo "Preparing env.list for Lacework/FortiCNAPP IaC scan"
+          # Export GH metadata and FortiCNAPP credentials
           env | grep "GITHUB_\|LW_\|CI_" > env.list || true
-          echo "LW_ACCOUNT=${{ secrets.LW_ACCOUNT }}" >> env.list
+
+          echo "LW_ACCOUNT_NAME=${{ secrets.LW_ACCOUNT_NAME }}" >> env.list
+          echo "LW_SUBACCOUNT_NAME=${{ secrets.LW_SUBACCOUNT_NAME }}" >> env.list
           echo "LW_API_KEY=${{ secrets.LW_API_KEY }}" >> env.list
           echo "LW_API_SECRET=${{ secrets.LW_API_SECRET }}" >> env.list
-          # Optional subaccount
-          if [ ! -z "${{ secrets.LW_SUBACCOUNT }}" ]; then
-            echo "LW_SUBACCOUNT=${{ secrets.LW_SUBACCOUNT }}" >> env.list
-          fi
-          # Fail the pipeline if critical findings exist
+
+          # Fail job if critical findings exist (change to HIGH=1 if desired)
           echo "EXIT_FLAG=CRITICAL=1" >> env.list
+
           echo "--- env.list created ---"
           cat env.list | grep -v "SECRET" || true
 
-      # Step 3. (Optional) Debug: show IaC files detected
+      # Step 3. (Optional) Debug: show IaC files found
       - name: List IaC files
         run: |
-          echo "Terraform files:"
-          find terraform -type f || true
-          echo "Kubernetes files:"
-          find kubernetes -type f || true
-
-      # Step 4. Run IaC scan using Lacework/FortiCNAPP container
-      - name: Run IaC scan
-        run: |
-          echo "Running Lacework/FortiCNAPP IaC scanner..."
-          docker run --rm \
-            --env-file env.list \
-            -v "$(pwd):/app/src" \
-            lacework/codesec:stable \
-            lacework iac scan --directory=.
+          echo "Terraform f
 
