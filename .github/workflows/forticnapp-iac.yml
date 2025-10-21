@@ -1,13 +1,13 @@
 name: FortiCNAPP IaC Scan
 
 on:
-  pull_request:
-    branches: [ main ]
+  push:
+    branches: [ "main" ]
     paths:
       - 'terraform/**'
       - 'kubernetes/**'
-  push:
-    branches: [ main ]
+  pull_request:
+    branches: [ "main" ]
     paths:
       - 'terraform/**'
       - 'kubernetes/**'
@@ -17,49 +17,48 @@ permissions:
   contents: read
   pull-requests: write
 
-env:
-  LW_ACCOUNT_NAME: ${{ secrets.LW_ACCOUNT_NAME }}
-  LW_SUBACCOUNT_NAME: ${{ secrets.LW_SUBACCOUNT_NAME }}
-  LW_API_KEY: ${{ secrets.LW_API_KEY }}
-  LW_API_SECRET: ${{ secrets.LW_API_SECRET }}
-
 jobs:
   iac-scan:
-    name: FortiCNAPP IaC Code Security Scan
-    runs-on: ubuntu-latest
+    name: Lacework FortiCNAPP IaC Scan
+    runs-on: ubuntu-24.04
+
     steps:
-      - name: Checkout code
+      # Step 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show directory (debug)
+      # Step 2. Prepare environment variables for Docker
+      - name: Create environment variables file
         run: |
-          echo "Scanning following directories:"
-          ls -R terraform || true
-          ls -R kubernetes || true
+          echo "Preparing env.list for Lacework/FortiCNAPP IaC scan"
+          env | grep "GITHUB_\|LW_\|CI_" > env.list || true
+          echo "LW_ACCOUNT=${{ secrets.LW_ACCOUNT }}" >> env.list
+          echo "LW_API_KEY=${{ secrets.LW_API_KEY }}" >> env.list
+          echo "LW_API_SECRET=${{ secrets.LW_API_SECRET }}" >> env.list
+          # Optional subaccount
+          if [ ! -z "${{ secrets.LW_SUBACCOUNT }}" ]; then
+            echo "LW_SUBACCOUNT=${{ secrets.LW_SUBACCOUNT }}" >> env.list
+          fi
+          # Fail the pipeline if critical findings exist
+          echo "EXIT_FLAG=CRITICAL=1" >> env.list
+          echo "--- env.list created ---"
+          cat env.list | grep -v "SECRET" || true
 
-      # --- Main IaC scan using official Fortinet container ---
-      - name: Run FortiCNAPP IaC Scan (PR or Push)
+      # Step 3. (Optional) Debug: show IaC files detected
+      - name: List IaC files
         run: |
-          echo "Running FortiCNAPP IaC Code Security container"
-          docker run --rm \
-            -e LW_ACCOUNT_NAME="${{ secrets.LW_ACCOUNT_NAME }}" \
-            -e LW_SUBACCOUNT_NAME="${{ secrets.LW_SUBACCOUNT_NAME }}" \
-            -e LW_API_KEY="${{ secrets.LW_API_KEY }}" \
-            -e LW_API_SECRET="${{ secrets.LW_API_SECRET }}" \
-            -e GITHUB_REF="${GITHUB_REF}" \
-            -e GITHUB_REPOSITORY="${GITHUB_REPOSITORY}" \
-            -e GITHUB_SHA="${GITHUB_SHA}" \
-            -v "${{ github.workspace }}":/scan \
-            fortinet/forticnapp-code-security:latest scan /scan
+          echo "Terraform files:"
+          find terraform -type f || true
+          echo "Kubernetes files:"
+          find kubernetes -type f || true
 
-      - name: Upload results to FortiCNAPP (optional for push events)
-        if: github.event_name == 'push'
+      # Step 4. Run IaC scan using Lacework/FortiCNAPP container
+      - name: Run IaC scan
         run: |
+          echo "Running Lacework/FortiCNAPP IaC scanner..."
           docker run --rm \
-            -e LW_ACCOUNT_NAME="${{ secrets.LW_ACCOUNT_NAME }}" \
-            -e LW_SUBACCOUNT_NAME="${{ secrets.LW_SUBACCOUNT_NAME }}" \
-            -e LW_API_KEY="${{ secrets.LW_API_KEY }}" \
-            -e LW_API_SECRET="${{ secrets.LW_API_SECRET }}" \
-            -v "${{ github.workspace }}":/scan \
-            fortinet/forticnapp-code-security:latest upload /scan
+            --env-file env.list \
+            -v "$(pwd):/app/src" \
+            lacework/codesec:stable \
+            lacework iac scan --directory=.
 
