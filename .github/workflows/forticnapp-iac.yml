@@ -48,5 +48,27 @@ jobs:
       # Step 3. (Optional) Debug: show IaC files found
       - name: List IaC files
         run: |
-          echo "Terraform f
+          echo "Terraform files:" && find terraform -type f || true
+          echo "Kubernetes files:" && find kubernetes -type f || true
+
+      # Step 4. Run IaC scan with official Lacework/FortiCNAPP image
+      - name: Run IaC scan
+        run: |
+          echo "Running Lacework/FortiCNAPP IaC scanner..."
+          docker run --rm \
+            --env-file env.list \
+            -v "$(pwd):/app/src" \
+            lacework/codesec:stable \
+            lacework iac scan --directory=. --noninteractive
+
+      # Step 5. Upload results to FortiCNAPP (only for push)
+      - name: Upload scan results to FortiCNAPP
+        if: github.event_name == 'push'
+        run: |
+          echo "Uploading IaC scan results to FortiCNAPP..."
+          docker run --rm \
+            --env-file env.list \
+            -v "$(pwd):/app/src" \
+            lacework/codesec:stable \
+            lacework iac upload --directory=. --noninteractive
 
