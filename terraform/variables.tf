@@ -9,7 +9,7 @@ variable "vpc_id" {
 }
 variable "prefix" { default = "insecure-demo" }
 variable "public_key" { 
-  description = "SSH public key for EC2", 
+  description = "SSH public key for EC2"
   default = "" 
 }
 
