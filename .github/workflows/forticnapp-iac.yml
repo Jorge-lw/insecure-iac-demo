@@ -60,14 +60,3 @@ jobs:
             lacework/codesec:stable \
             lacework iac scan --directory=. --noninteractive
 
-      # Step 5. Upload results to FortiCNAPP (only for push)
-      - name: Upload scan results to FortiCNAPP
-        if: github.event_name == 'push'
-        run: |
-          echo "Uploading IaC scan results to FortiCNAPP..."
-          docker run --rm \
-            --env-file env.list \
-            -v "$(pwd):/app/src" \
-            lacework/codesec:stable \
-            lacework iac upload --directory=. --noninteractive
-
