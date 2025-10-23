@@ -7,7 +7,9 @@ variable "bucket_name" {
 variable "vpc_id" {
   default = "vpc-xxxxxxxx"
 }
-variable "region" { default = "us-east-1" }
 variable "prefix" { default = "insecure-demo" }
-variable "public_key" { description = "SSH public key for EC2", default = "" }
+variable "public_key" { 
+  description = "SSH public key for EC2", 
+  default = "" 
+}
 

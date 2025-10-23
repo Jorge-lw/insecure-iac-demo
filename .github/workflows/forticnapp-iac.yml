@@ -54,6 +54,7 @@ jobs:
       - name: Run IaC scan
         run: |
           echo "Running Lacework/FortiCNAPP IaC scanner..."
+          curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
           docker run --rm \
             --env-file env.list \
             -v "$(pwd):/app/src" \
