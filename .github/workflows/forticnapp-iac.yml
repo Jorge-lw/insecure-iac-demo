@@ -59,5 +59,6 @@ jobs:
             --env-file env.list \
             -v "$(pwd):/app/src" \
             lacework/codesec:stable \
+            curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash &&
             lacework iac scan --directory=. --noninteractive
 
