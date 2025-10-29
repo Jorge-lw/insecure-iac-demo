@@ -23,15 +23,15 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v4
 
-      - name: Checkout old
-        if: ${{ matrix.target == 'old' }}
-        run: git checkout HEAD^1
+    - name: Checkout old
+      if: ${{ matrix.target == 'old' }}
+      run: git checkout HEAD^1
 
-      - name: FortiCNAPP analyze (${{ matrix.target }})
-        # Recomendación: fija por SHA en producción (ver comentario de seguridad)
-        uses: lacework/code-security-action@v1
-        with:
-          target: ${{ matrix.target }}
+    - name: FortiCNAPP analyze (${{ matrix.target }})
+      # Recomendación: fija por SHA en producción (ver comentario de seguridad)
+      uses: lacework/code-security-action@v1
+      with:
+        target: ${{ matrix.target }}
 
   display-results:
     name: Annotate PR
