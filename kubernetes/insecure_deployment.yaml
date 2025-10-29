@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vulnerable-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: vulnerable
+  template:
+    metadata:
+      labels:
+        app: vulnerable
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.14.2
+          resources: {}          # ❌ sin límites de recursos
+          securityContext:
+            privileged: true     # ❌ Contenedor privilegiado
+
