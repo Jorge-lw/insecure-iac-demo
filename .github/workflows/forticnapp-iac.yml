@@ -37,7 +37,7 @@ jobs:
           echo "LW_ACCOUNT=${{ secrets.LW_ACCOUNT_NAME }}" >> env.list
           echo "LW_API_KEY=${{ secrets.LW_API_KEY }}" >> env.list
           echo "LW_API_SECRET=${{ secrets.LW_API_SECRET }}" >> env.list
-
+          echo "LW_SUBACCOUNT_NAME=${{ secrets.LW_SUBACCOUNT_NAME}}" >> env.list
           # Fail job if critical findings exist (change to HIGH=1 if desired)
           echo "EXIT_FLAG=CRITICAL=1" >> env.list
 
