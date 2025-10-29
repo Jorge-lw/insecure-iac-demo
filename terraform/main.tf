@@ -13,7 +13,6 @@ provider "aws" {
 # Insecure S3 bucket: public_read, no versioning
 resource "aws_s3_bucket" "public_bucket" {
   bucket = var.bucket_name
-  acl    = "public-read"
 }
 
 # Insecure security group (opens 22 & 0.0.0.0/0)
