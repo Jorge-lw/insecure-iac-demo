@@ -10,11 +10,6 @@ provider "aws" {
   region = var.region
 }
 
-# Insecure S3 bucket: public_read, no versioning
-resource "aws_s3_bucket" "public_bucket" {
-  bucket = var.bucket_name
-}
-
 # Insecure security group (opens 22 & 0.0.0.0/0)
 resource "aws_security_group" "open_sg" {
   name        = "open_sg"
